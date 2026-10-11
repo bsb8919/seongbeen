@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+
+void handle_sigint(int sig) {
+    printf("\n>>> 핸들러 실행: 신호가 전달되었습니다!\n");
+}
+
+int main(void) {
+    signal(SIGINT, handle_sigint);
+
+    sigset_t block_mask, old_mask;
+    sigemptyset(&block_mask);
+    sigaddset(&block_mask, SIGINT);
+
+    printf("1. 시그널 차단 시작 (5초 동안 Ctrl+C를 눌러보세요)\n");
+    if (sigprocmask(SIG_BLOCK, &block_mask, &old_mask) < 0) {
+        perror("sigprocmask error");
+        return 1;
+    }
+
+    for (int i = 5; i > 0; i--) {
+        printf("차단 유지 중... %d초 남음\n", i);
+        sleep(1);
+    }
+
+    printf("\n2. 시그널 차단 해제\n");
+    if (sigprocmask(SIG_SETMASK, &old_mask, NULL) < 0) {
+        perror("sigprocmask error");
+        return 1;
+    }
+
+    printf("3. 프로그램 정상 종료\n");
+    return 0;
+}
