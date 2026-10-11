@@ -1,0 +1,39 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <unistd.h>
+
+int interval = 0;
+int max_repeat = 0;
+volatile sig_atomic_t current_count = 0;
+
+void handle_alarm(int sig) {
+    current_count++;
+    printf("[%d/%d] 알람이 울렸습니다!\n", current_count, max_repeat);
+
+    if (current_count < max_repeat) {
+        alarm(interval);
+    }
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 3) {
+        fprintf(stderr, "사용법: %s <간격초> <반복횟수>\n", argv[0]);
+        return 1;
+    }
+
+    interval = atoi(argv[1]);
+    max_repeat = atoi(argv[2]);
+
+    signal(SIGALRM, handle_alarm);
+
+    printf("%d초 간격으로 %d번 알람을 울립니다.\n", interval, max_repeat);
+    alarm(interval);
+
+    while (current_count < max_repeat) {
+        pause();
+    }
+
+    printf("모든 알람이 끝났습니다.\n");
+    return 0;
+}
